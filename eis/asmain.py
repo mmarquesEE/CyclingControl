@@ -55,7 +55,6 @@ if __name__ == "__main__":
             if graph_data:
                 dfi.append(get_data_as_df(graph_data))
                 
-
         sensorpal.CloseConnection()
         df = pd.concat(dfi,ignore_index=True)
         print(df)
