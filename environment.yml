@@ -1,0 +1,22 @@
+name: sensorpal
+channels:
+  - defaults
+dependencies:
+  - ca-certificates=2019.5.15
+  - certifi=2019.6.16
+  - openssl=1.1.1c
+  - pip=19.2.2
+  - python=3.7.4
+  - setuptools=41.0.1
+  - sqlite=3.29.0
+  - vc=14.1
+  - vs2015_runtime=14.16.27012
+  - wheel=0.33.4
+  - wincertstore=0.2
+  - pip:
+    - construct==2.9.45
+    - crcmod==1.7
+    - pyserial==3.4
+    - pythonnet==2.4.0
+prefix: C:\ProgramData\Anaconda3\envs\sensorpal
+
