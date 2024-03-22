@@ -78,7 +78,7 @@ class EIS:
             self.sensorpal.UpdateTechniqueParameter(self.technique, self.technique_parameters,
                 "Enable", "1")
     
-    def run(self, filename):
+    def run(self, filename="EIS.csv"):
         try:
             self.sensorpal.Measure(self.technique, self.technique_parameters)
         except Exception as e:
@@ -94,3 +94,5 @@ class EIS:
             self.sensorpal.CloseConnection()
             df = pd.concat(dfi,ignore_index=True)
             df.to_csv(filename)
+
+            return df
