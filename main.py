@@ -6,4 +6,4 @@ if __name__ == "__main__":
     # eis.run("EIS.csv")
 
     dcl = DCL()
-    dcl.run('CURR',[0.6,0.5,0.22,0.5,0.1],time=[1.5])
+    # dcl.run('CURR',[0.6,0.5,0.22,0.5,0.1],time=[1.5])
