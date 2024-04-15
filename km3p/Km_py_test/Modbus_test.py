@@ -35,7 +35,7 @@ class km3:
     #reset to standart values
     reset_default = reg(19, val=-481, sign=True)
     
-    def __init__(self,slave_address=1,serial_port='/dev/ttyUSB0', timeout=0.25,baud_rate=9600,set_point=0, alarm=0, threshold=1,debug=False):
+    def __init__(self,slave_address=1,serial_port='/dev/ttyUSB0', timeout=0.25,baud_rate=9600,debug=False):
         self.km3p = minimalmodbus.Instrument(serial_port, slave_address, debug=debug)
         self.km3p.serial.baudrate = baud_rate
         self.km3p.serial.timeout = timeout
