@@ -42,7 +42,7 @@ class km3:
     #reset to standart values
     reset_default = reg(19, val=-481, sign=True)
     
-    def __init__(self,slave_address=1,serial_port='/dev/ttyUSB0', timeout=0.25,baud_rate=9600, decimal=0,debug=False):
+    def __init__(self,slave_address=1,serial_port='/dev/ttyUSB0', timeout=0.25,baud_rate=9600, decimal=0,debug=False): #init
         self.km3p = minimalmodbus.Instrument(serial_port, slave_address, debug=debug)
         self.km3p.serial.baudrate = baud_rate
         self.km3p.serial.timeout = timeout
@@ -56,15 +56,15 @@ class km3:
     
     if __name__== '__main__':
         pass
-    def write(self, reg:reg):
+    def write(self, reg:reg): #escreve no registrador, função fundamental
         #modbus function 6 = write single register
         self.km3p.write_register(reg.address, reg.value, reg.dec_point, 6, reg.singed)
 
-    def read(self, reg:reg):
+    def read(self, reg:reg): #lê registrador, função fundamental
         #modbus function 3 = read n registers
         return self.km3p.read_register(reg.address, reg.dec_point, 3, reg.singed)
     
-    def tune(self):
+    def tune(self): #inicia/finaliza auto-tuning
         c = self.read(self.tune_onoff)
         if(c == 0):
             self.tune_onoff.value = 1
@@ -73,13 +73,13 @@ class km3:
             self.tune_onoff.value = 0
             self.write(self.tune_onoff)
 
-    def get_pid_params(self):
+    def get_pid_params(self): #lê valores do pid
         p = self.read(self.proportional)
         i = self.read(self.integral)
         d = self.read(self.derivative)
         return [p, i, d]
     
-    def get_baud(self):
+    def get_baud(self):#lê valores do baudrate
         c = self.read(self.baud)
         match c:
             case 0:
@@ -96,7 +96,7 @@ class km3:
                 baud = 9600
         return baud
 
-    def set_alarm(self, set_point:int, faixa:int):
+    def set_alarm(self, set_point:int, faixa:int): #set alarm, (valor desejado, faixa +-) limite superior = valor + faixa, limite inferior = valor - faixa
         self.alarm_1_high.value = set_point + faixa
         self.alarm_1_low.value = set_point - faixa
         self.alarm_1_low.singed = True if self.alarm_1_low.value < 0 else False
@@ -108,20 +108,20 @@ class km3:
         self.write(self.out_3_func)
         self.write(self.out_3_alarm)
 
-    def set_temperature(self, value=0):
+    def set_temperature(self, value=0): #seleciona o setpoint
         self.set_point1.value = value
         self.write(self.set_point1)
 
-    def temperature(self):
+    def temperature(self): #lê a temperatura
         return self.read(self.measure_value)
 
 
-    def wait_temperature(self):
+    def wait_temperature(self): #retorna true se o valor medido é o mesmo do setpoint, falso caso o contrário
         if(self.read(self.measure_value) != self.set_point1.value):
             return False
         return True
 
-    def reset(self):
+    def reset(self): #reseta todos os valores para padrão de fabrica
         self.write(self.reset_default)
 
 
