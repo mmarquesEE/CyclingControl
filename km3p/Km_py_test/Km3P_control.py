@@ -24,7 +24,7 @@ class km3:
     set_point1 = reg(6, 0, dec, sign=True)
     sensor_type = reg(640, 7) 
     #pid
-    tune_type = reg(695, -3, sign=True)
+    tune_type = reg(695, 3, sign=False)
     tune_onoff = reg(696, 0)
     proportional = reg(700, dp=dec)
     integral = reg(701)
