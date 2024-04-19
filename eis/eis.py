@@ -58,33 +58,8 @@ class EIS:
         self.technique = "Battery Impedance"
         self.technique_parameters = self.sensorpal.GetDefaultTechniqueParameters(self.technique)
 
-        self.reset(init_call=True)
-    
-    def reset(self,init_call=False):
-        if not init_call:
-            self.sensorpal.CloseConnection()
-            self.connect(self.com_port)
-            self.set_forced_reset_params()
-
-            try:
-                self.run(reset_run=True)
-            except Exception as e:
-                print(e)
-                raise e
-           
-            self.sensorpal.CloseConnection()
-        
-        self.connect(self.com_port)
-        self.set_self_params()
-
-    def connect(self,com_port):
-        try:
-            self.sensorpal.OpenConnection(com_port)
-        except Exception as e:
-            print(e)
-            print("I was unable to open '%s'. Is it connected?" % com_port)
-
-    def run(self, filename=None,reset_after=False,reset_run=False):
+    def run(self, filename=None):
+        self.sensorpal.OpenConnection(self.com_port)
         try:
             self.sensorpal.Measure(self.technique, self.technique_parameters)
         except Exception as e:
@@ -99,34 +74,30 @@ class EIS:
                     
             self.sensorpal.CloseConnection()
             
-            if not reset_run:
-                df = pd.concat(dfi)
+            df = pd.concat(dfi)
                 
-                points = int(self.points)
-                points = points if points > 0 else 100
+            points = int(self.points)
+            points = points if points > 0 else 100
 
-                if self.logarithmic == "1":
-                    freqs = np.logspace(
-                        np.log10(float(self.start_frequency)),
-                        np.log10(float(self.stop_frequency)),
-                        points
-                    )
-                else:
-                    freqs = np.linspace(
-                        float(self.start_frequency),
-                        float(self.stop_frequency),
-                        points
-                    )
-                
-                df["Frequency (Hz)"] = freqs[df.index]
+            if self.logarithmic == "1":
+                freqs = np.logspace(
+                    np.log10(float(self.start_frequency)),
+                    np.log10(float(self.stop_frequency)),
+                    points
+                )
+            else:
+                freqs = np.linspace(
+                    float(self.start_frequency),
+                    float(self.stop_frequency),
+                    points
+                )
+            
+            df["Frequency (Hz)"] = freqs[df.index]
 
-                if filename != None:
-                    df.to_csv(filename)
+            if filename != None:
+                df.to_csv(filename)
 
-                if reset_after:
-                    self.reset()
-
-                return df
+            return df
     
     def set_forced_reset_params(self):
         self.sensorpal.UpdateTechniqueParameter(self.technique, self.technique_parameters,
