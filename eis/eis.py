@@ -21,9 +21,6 @@ def get_data_as_df(graph_data):
 class NoConnectionException(Exception):
     """The device is not connected! Verify the COM port"""
 
-class FailedMeasureException(Exception):
-    """Failed to Measure"""
-
 class EIS:
     def __init__(
             self,
