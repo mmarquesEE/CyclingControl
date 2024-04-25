@@ -1,4 +1,4 @@
-name: sensorpal
+name: batterycontrol
 channels:
   - defaults
 dependencies:

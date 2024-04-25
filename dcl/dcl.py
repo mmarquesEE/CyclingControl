@@ -17,7 +17,7 @@ class DCL:
         self.inst.write("SENS:DLOG:FUNC:CURR 0, (@1,2)")
 
     def run(self, mode, list_values, channels,
-        list_time=[0.01], repetitions=1, sample_time=0.01, filename="DCL.csv"):
+        list_time=[0.01], repetitions=1, sample_time=0.01, filename=None):
         
         self.inst.write(f"FUNC {mode}, (@{channels})")
         self.inst.write(f"{mode} 0.012, (@{channels})")
@@ -66,7 +66,9 @@ class DCL:
                 pd.DataFrame(data={"Voltage": dout_float[0], "Current": dout_float[1]}, index=[0]))
         
         df = pd.concat(dfi, ignore_index=True)
-        df.to_csv(filename)
+        
+        if filename:
+            df.to_csv(filename)
         
         return df
     

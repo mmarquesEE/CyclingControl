@@ -1,4 +1,4 @@
-from dcLoad import DCL
+from dcl.dcl import DCL
 
 def main():
 
