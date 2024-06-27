@@ -16,9 +16,14 @@ class DCL:
         self.inst.write("SENS:DLOG:FUNC:VOLT 0, (@1,2)")
         self.inst.write("SENS:DLOG:FUNC:CURR 0, (@1,2)")
 
-    def run(self, mode, list_values, channels,
+    def run(self, mode, list_values, channels, cutof_voltage,
         list_time=[0.01], repetitions=1, sample_time=0.01, filename=None):
         
+        self.reset()
+
+        self.inst.write(f"VOLT:INH:VON {cutof_voltage}, (@{channels})")
+        self.inst.write(f"VOLT:INH:VON:MODE LIVE, (@{channels})")
+
         self.inst.write(f"FUNC {mode}, (@{channels})")
         self.inst.write(f"{mode} 0.012, (@{channels})")
         self.inst.write(f"LIST:{mode} {''.join([str(e) + ',' for e in list_values])} (@{channels})")
@@ -37,41 +42,46 @@ class DCL:
         self.inst.write(f"{mode}:MODE LIST, (@{channels})")
         self.inst.write(f"LIST:TOUT:EOST {','.join([str(e) for e in eost_values])}, (@{channels})")
         
-        self.inst.write(f"SENS:DLOG:FUNC:VOLT 1, (@1,2)")
-        self.inst.write(f"SENS:DLOG:FUNC:CURR 1, (@1,2)")
-        
-        self.inst.write(f"SENS:DLOG:TIME {sum(time_list)}")
-        self.inst.write(f"SENS:DLOG:PER {sample_time}")
-        
         self.inst.write(f"DIG:PIN1:FUNC TOUT")
         self.inst.write(f"DIG:PIN1:POL NEG")
 
         self.inst.write("TRIG:TRAN:SOUR BUS")
-        self.inst.write("TRIG:DLOG:SOUR BUS")
-
         self.inst.write(f"INIT:TRAN (@{channels})")
-        self.inst.write(f'INIT:DLOG "Internal:/log1.dlog"')
-        
+
         self.inst.write(f"INP ON, (@{channels})")
+        
+        self.inst.write(f"SENS:FUNC:CURR 1, (@{channels})")
+        self.inst.write(f"SENS:FUNC:VOLT 1, (@{channels})")
+
+        ch_n = len(channels.split(sep=","))
+        self.inst.write(f"SENS:SWE:POIN {2*ch_n*int(sum(list_time)/sample_time)}, (@{channels})")
+        self.inst.write(f"SENS:SWE:TINT {sample_time}, (@{channels})")
+
         self.inst.write("*TRG")
         
-        time.sleep(sum(time_list) + 5)
+        while all(map(lambda x: x > 0.02, [
+            float(a) for a in self.inst.query(f"MEAS:CURR? (@{channels})").split(sep=",")
+        ])):
+            pass
+            
+        self.inst.write("*RST")
 
-        fetch_points = int(sum(time_list) / sample_time)
-        dfi = []
-        for i in range(fetch_points):
-            dout = self.inst.query(f"FETC:DLOG? 1, (@{channels})")
-            dout_float = [float(a) for a in dout.split(",")]
-            dfi.append(
-                pd.DataFrame(data={"Voltage": dout_float[0], "Current": dout_float[1]}, index=[0]))
-        
-        df = pd.concat(dfi, ignore_index=True)
+        data = []
+        for ch in [int(c) for c in channels.split(sep=",")]:
+            curr = [float(a) for a in self.inst.query(f"MEAS:ARR:CURR? (@{channels})").split(sep=",")]
+            volt = [float(a) for a in self.inst.query(f"MEAS:ARR:VOLT? (@{channels})").split(sep=",")]
+
+            row = dict()
+            for i in range(0,len(curr)):
+                row[f"Voltage{ch}"] = volt[i]
+                row[f"Current{ch}"] = curr[i]
+                data.append(row)
+        df = pd.DataFrame(data)
         
         if filename:
             df.to_csv(filename)
         
         return df
-    
 
     
 
