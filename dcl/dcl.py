@@ -3,11 +3,16 @@ import time
 import pandas as pd
 
 
+def aux(x):
+    print(x)
+    return x > 0.02
+
 class DCL:
     def __init__(self,serial_number="USB0::0x2A8D::0x3902::MY61001566::INSTR") -> None:
         self.rm = pyvisa.ResourceManager()
         self.inst = self.rm.open_resource(serial_number)
         print(self.inst.query("*IDN?"))
+        self.inst.timeout = 10000
 
     def reset(self):
         while int(self.inst.query("*RST;*OPC?")) != 1:
@@ -59,39 +64,45 @@ class DCL:
 
         self.inst.write("TRIG:TRAN:SOUR BUS")
         self.inst.write(f"INIT:TRAN (@{channels})")
-
-        self.inst.write(f"INP ON, (@{channels})")
         
         self.inst.write(f"SENS:FUNC:CURR 1, (@{channels})")
         self.inst.write(f"SENS:FUNC:VOLT 1, (@{channels})")
 
         ch_n = len(channels.split(sep=","))
-        self.inst.write(f"SENS:SWE:POIN {2*ch_n*int(sum(list_time)/sample_time)}, (@{channels})")
+        self.inst.write(f"SENS:SWE:POIN {int(2*ch_n/sample_time)}, (@{channels})")
         self.inst.write(f"SENS:SWE:TINT {sample_time}, (@{channels})")
 
+        self.inst.write(f"STAT:QUES:PTR 512, (@{channels})")
+
+        self.inst.write(f"INP ON, (@{channels})")
         self.inst.write("*TRG")
-        
-        while all(map(lambda x: x > 0.02, [
-            float(a) for a in self.inst.query(f"MEAS:CURR? (@{channels})").split(sep=",")
-        ])):
-            pass
-            
-        self.inst.write("*RST")
 
         data = []
-        for ch in [int(c) for c in channels.split(sep=",")]:
-            curr = [float(a) for a in self.inst.query(f"MEAS:ARR:CURR? (@{channels})").split(sep=",")]
-            volt = [float(a) for a in self.inst.query(f"MEAS:ARR:VOLT? (@{channels})").split(sep=",")]
 
-            row = dict()
-            for i in range(0,len(curr)):
-                row[f"Voltage{ch}"] = volt[i]
-                row[f"Current{ch}"] = curr[i]
-                data.append(row)
+        key = True
+        while all(map(lambda x: x == 0, [
+            int(a) for a in self.inst.query(f"STAT:QUES:EVENT? (@{channels})").split(sep=",")
+        ])) and key:
+            for ch in [int(a) for a in channels.split(sep=",")]:
+                curr = [float(a) for a in self.inst.query(f"MEAS:ARR:CURR? (@{ch})").split(sep=",")]
+                volt = [float(a) for a in self.inst.query(f"MEAS:ARR:VOLT? (@{ch})").split(sep=",")]
+
+                print(curr)
+                row = dict()
+                for i in range(0,len(curr)):
+                    row[f"Voltage{ch}"] = volt[i]
+                    row[f"Current{ch}"] = curr[i]
+                    data.append(row)
+                
+                if(any(map(lambda x: x < 0.02, curr))):
+                    key = False
+                    break
+
         df = pd.DataFrame(data)
-        
+
         if filename:
             df.to_csv(filename)
+
         
         return df
 
