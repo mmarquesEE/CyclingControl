@@ -16,7 +16,19 @@ class DCL:
         self.inst.write("SENS:DLOG:FUNC:VOLT 0, (@1,2)")
         self.inst.write("SENS:DLOG:FUNC:CURR 0, (@1,2)")
 
-    def run(self, mode, list_values, channels, cutof_voltage,
+    def runBattery(self, mode, channels, curr_value, cutof_voltage):   
+    
+        self.inst.write(f"FUNC {mode}, (@{channels})")
+        self.inst.write(f"{mode} {curr_value}, (@{channels})")
+
+        self.inst.write(f"BATT:CUTO:VOLT:STAT ON, (@{channels})")
+        self.inst.write(f"BATT:CUTO:VOLT {cutof_voltage}, (@{channels})")
+
+        self.inst.write(f"BATT ON, (@{channels})")
+        self.inst.write(f"INP ON, (@{channels})")
+
+
+    def runList(self, mode, list_values, channels, cutof_voltage,
         list_time=[0.01], repetitions=1, sample_time=0.01, filename=None):
         
         self.reset()

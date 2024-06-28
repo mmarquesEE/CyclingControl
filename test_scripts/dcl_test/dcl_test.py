@@ -10,6 +10,14 @@ def main():
     sleep(1)
     mcu_instance.dcl_eis(False)
 
+    dcl_instance = DCL()
+    mode = "CURR" 
+    channels = '1'
+    curr_value = 1.3
+    cutoff_voltage = 10
+
+    df_result = dcl_instance(mode, channels, curr_value, cutoff_voltage)
+    
     # dcl_instance = DCL()
     
     # mode = "CURR"  
