@@ -33,7 +33,7 @@ class DCL:
         self.inst.write(f"INP ON, (@{channels})")
 
 
-    def runList(self, mode, list_values, channels, cutof_voltage,
+    def run(self, mode, list_values, channels, cutof_voltage,
         list_time=[0.01], repetitions=1, sample_time=0.01, filename=None):
         
         self.reset()
